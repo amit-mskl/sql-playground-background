@@ -195,8 +195,8 @@ app.post('/api/login', async (req, res) => {
   const { loginId, password } = req.body;
   
   try {
-    const result = await pool.query(
-      'SELECT id, login_id, full_name FROM users WHERE login_id = $1 AND password = $2',
+    const result = await supabasePool.query(
+      'SELECT id, login_id, full_name FROM sql_playground.users WHERE login_id = $1 AND password = $2',
       [loginId, password]
     );
     
@@ -219,8 +219,8 @@ app.post('/api/log-activity', async (req, res) => {
   const { loginId, sqlQuery, executionResult, success } = req.body;
   
   try {
-    const result = await pool.query(
-      'INSERT INTO learner_activity (login_id, sql_query, execution_result, success) VALUES ($1, $2, $3, $4) RETURNING *',
+    const result = await supabasePool.query(
+      'INSERT INTO sql_playground.learner_activity (login_id, sql_query, execution_result, success) VALUES ($1, $2, $3, $4) RETURNING *',
       [loginId, sqlQuery, JSON.stringify(executionResult), success]
     );
     
