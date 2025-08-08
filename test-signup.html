@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Signup</title>
+</head>
+<body>
+    <h2>Test User Signup</h2>
+    <button onclick="testSignup()">Test Signup</button>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="testActivity()">Test Activity Log</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function testSignup() {
+            try {
+                const response = await fetch('http://localhost:3001/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        loginId: 'testuser2',
+                        password: 'pass123',
+                        fullName: 'Test User 2'
+                    })
+                });
+                const result = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        }
+        async function testLogin() {
+        try {
+            const response = await fetch('http://localhost:3001/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    loginId: 'testuser2',
+                    password: 'pass123'
+                })
+            });
+            const result = await response.json();
+            document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+        } catch (error) {
+            document.getElementById('result').textContent = 'Error: ' + error.message;
+        }
+    }
+        async function testActivity() {
+        try {
+            const response = await fetch('http://localhost:3001/api/log-activity', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    loginId: 'testuser2',
+                    sqlQuery: 'SELECT * FROM ex_customers LIMIT 5',
+                    executionResult: {rows: 5, success: true},
+                    success: true
+                })
+            });
+            const result = await response.json();
+            document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+        } catch (error) {
+            document.getElementById('result').textContent = 'Error: ' + error.message;
+        }
+    }
+    </script>
+</body>
+</html>
