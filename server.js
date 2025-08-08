@@ -42,16 +42,6 @@ pool.connect((err, client, release) => {
   }
 });
 
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Test endpoint
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'Backend server is working with PostgreSQL!' });
-});
-
 // Test Supabase connection
 app.get('/api/test-supabase', async (req, res) => {
   try {
@@ -64,6 +54,16 @@ app.get('/api/test-supabase', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'Backend server is working with PostgreSQL!' });
 });
 
 // Database tables endpoint
@@ -165,8 +165,8 @@ app.post('/api/signup', async (req, res) => {
   
   try {
     // Check if user already exists
-    const existingUser = await pool.query(
-      'SELECT login_id FROM users WHERE login_id = $1', 
+    const existingUser = await supabasePool.query(
+      'SELECT login_id FROM sql_playground.users WHERE login_id = $1', 
       [loginId]
     );
     
@@ -175,8 +175,8 @@ app.post('/api/signup', async (req, res) => {
     }
     
     // Create new user
-    const result = await pool.query(
-      'INSERT INTO users (login_id, password, full_name) VALUES ($1, $2, $3) RETURNING id, login_id, full_name',
+    const result = await supabasePool.query(
+      'INSERT INTO sql_playground.users (login_id, password, full_name) VALUES ($1, $2, $3) RETURNING id, login_id, full_name',
       [loginId, password, fullName]
     );
     
