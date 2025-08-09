@@ -159,25 +159,34 @@ app.get('/api/schema/:tableName', async (req, res) => {
   }
 });
 
-// User registration endpoint
+// User registration endpoint - UPDATED for email-only signup
 app.post('/api/signup', async (req, res) => {
-  const { loginId, password, fullName } = req.body;
+  const { email, password, fullName } = req.body;
   
   try {
-    // Check if user already exists
+    // Check if email already exists
     const existingUser = await supabasePool.query(
-      'SELECT login_id FROM sql_playground.users WHERE login_id = $1', 
-      [loginId]
+      'SELECT email FROM sql_playground.users WHERE email = $1', 
+      [email]
     );
     
     if (existingUser.rows.length > 0) {
-      return res.status(400).json({ error: 'User already exists' });
+      return res.status(400).json({ error: 'Email address already exists' });
     }
     
-    // Create new user
+    // Validate email format (server-side validation)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+    
+    // Generate login_id from email (use full email)
+    const loginId = email;
+    
+    // Create new user with email as login_id
     const result = await supabasePool.query(
-      'INSERT INTO sql_playground.users (login_id, password, full_name) VALUES ($1, $2, $3) RETURNING id, login_id, full_name',
-      [loginId, password, fullName]
+      'INSERT INTO sql_playground.users (login_id, email, password, full_name) VALUES ($1, $2, $3, $4) RETURNING id, login_id, email, full_name',
+      [loginId, email, password, fullName]
     );
     
     res.json({ 
@@ -190,18 +199,18 @@ app.post('/api/signup', async (req, res) => {
   }
 });
 
-// User login endpoint
+// User login endpoint - UPDATED for email-based login
 app.post('/api/login', async (req, res) => {
-  const { loginId, password } = req.body;
+  const { email, password } = req.body;
   
   try {
     const result = await supabasePool.query(
-      'SELECT id, login_id, full_name FROM sql_playground.users WHERE login_id = $1 AND password = $2',
-      [loginId, password]
+      'SELECT id, login_id, email, full_name FROM sql_playground.users WHERE email = $1 AND password = $2',
+      [email, password]
     );
     
     if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
     
     res.json({ 
@@ -214,11 +223,12 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Activity logging endpoint
+// Activity logging endpoint - UPDATED to work with email-based users
 app.post('/api/log-activity', async (req, res) => {
   const { loginId, sqlQuery, executionResult, success } = req.body;
   
   try {
+    // loginId could be email now, so we handle both cases
     const result = await supabasePool.query(
       'INSERT INTO sql_playground.learner_activity (login_id, sql_query, execution_result, success) VALUES ($1, $2, $3, $4) RETURNING *',
       [loginId, sqlQuery, JSON.stringify(executionResult), success]
